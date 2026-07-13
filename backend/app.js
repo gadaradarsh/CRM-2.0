@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'crm_dev_secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {

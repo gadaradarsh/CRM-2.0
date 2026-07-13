@@ -1,0 +1,60 @@
+version: '3.8'
+
+# Common logging configuration to prevent log files from growing indefinitely
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: crm-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crm-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *default-logging
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crm-frontend
+    ports:
+      # Map host 3000 to the new unprivileged nginx port 8080
+      - "3000:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    logging: *default-logging
+
+volumes:
+  mongo-data:
