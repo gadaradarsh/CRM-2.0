@@ -25,6 +25,7 @@ services:
       start_period: 10s
 
   backend:
+    image: darshgadara/crm-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -44,6 +45,7 @@ services:
     logging: *default-logging
 
   frontend:
+    image: darshgadara/crm-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
